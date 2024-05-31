@@ -2,5 +2,8 @@
 <resources>
     <string name="app_name">DenofaTrigger</string>
 
+    <string name="label_name">名称</string>
+    <string name="label_url">链接</string>
+
     <string name="text_no_steps">无步骤</string>
 </resources>
