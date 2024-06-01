@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.watchface.complications.data.source.ktx)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation(libs.google.dagger.hilt.android)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)

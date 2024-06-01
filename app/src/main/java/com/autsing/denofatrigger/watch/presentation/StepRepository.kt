@@ -29,6 +29,10 @@ class StepRepository @Inject constructor() {
         return steps
     }
 
+    fun setSteps(newSteps: List<Step>) {
+        steps.value = newSteps
+    }
+
     fun addStep(index: Int, step: Step) {
         steps.value = steps.value
             .toMutableList()

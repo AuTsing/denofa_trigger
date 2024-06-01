@@ -3,7 +3,6 @@ package com.autsing.denofatrigger.watch.presentation
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -88,7 +87,6 @@ private fun AddStepApp(
     onConfirm: (Int, String, String) -> Unit = { _, _, _ -> },
     onCancel: () -> Unit = {},
 ) {
-    Log.d("TAG", "AddStepApp: $index")
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
     var name by remember { mutableStateOf("") }
     var url by remember { mutableStateOf("") }

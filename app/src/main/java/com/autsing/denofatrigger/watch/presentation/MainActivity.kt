@@ -30,6 +30,9 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
@@ -40,14 +43,23 @@ import androidx.wear.compose.material.Text
 import com.autsing.denofatrigger.watch.R
 import com.autsing.denofatrigger.watch.presentation.theme.DenofaTriggerTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
     lateinit var stepRepo: StepRepository
+
+    @Inject
+    @StepDataStore
+    lateinit var dataStore: DataStore<Preferences>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -58,6 +70,34 @@ class MainActivity : ComponentActivity() {
 
         val stepsState = stepRepo.observeSteps()
             .stateIn(lifecycleScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        lifecycleScope.launch(Dispatchers.IO) {
+            val steps = runCatching {
+                val names = dataStore.data
+                    .map { it[DataStoreModule.PrefKeys.prefKeyStepNames] ?: "" }
+                    .first()
+                    .split(",")
+                val urls = dataStore.data
+                    .map { it[DataStoreModule.PrefKeys.prefKeyStepUrls] ?: "" }
+                    .first()
+                    .split(",")
+                names.mapIndexed { index, name -> Step(name, urls[index]) }
+            }.getOrDefault(emptyList())
+            stepRepo.setSteps(steps)
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            stepsState.collectIndexed { index, steps ->
+                if (index == 0) {
+                    return@collectIndexed
+                }
+
+                val names = steps.joinToString(",") { it.name }
+                val urls = steps.joinToString(",") { it.url }
+                dataStore.edit {
+                    it[DataStoreModule.PrefKeys.prefKeyStepNames] = names
+                    it[DataStoreModule.PrefKeys.prefKeyStepUrls] = urls
+                }
+            }
+        }
 
         setContent {
             val steps by stepsState.collectAsState()
