@@ -3,6 +3,7 @@ package com.autsing.denofatrigger.watch.presentation
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -37,10 +38,15 @@ import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Switch
 import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.ToggleChip
 import com.autsing.denofatrigger.watch.R
 import com.autsing.denofatrigger.watch.presentation.theme.DenofaTriggerTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AddStepActivity : ComponentActivity() {
     companion object {
         const val EXTRA_KEY_INDEX = "EXTRA_KEY_INDEX"
@@ -52,6 +58,9 @@ class AddStepActivity : ComponentActivity() {
         }
     }
 
+    @Inject
+    lateinit var stepRepo: StepRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,7 +70,11 @@ class AddStepActivity : ComponentActivity() {
 
         setContent {
             AddStepApp(
-                onConfirm = { name, url -> },
+                index = index,
+                onConfirm = { index, name, url ->
+                    stepRepo.addStep(index, Step(name, url))
+                    finish()
+                },
                 onCancel = { finish() },
             )
         }
@@ -71,12 +84,15 @@ class AddStepActivity : ComponentActivity() {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun AddStepApp(
-    onConfirm: (String, String) -> Unit = { _, _ -> },
+    index: Int,
+    onConfirm: (Int, String, String) -> Unit = { _, _, _ -> },
     onCancel: () -> Unit = {},
 ) {
+    Log.d("TAG", "AddStepApp: $index")
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
     var name by remember { mutableStateOf("") }
     var url by remember { mutableStateOf("") }
+    var addBeforeIndex by remember { mutableStateOf(false) }
 
     DenofaTriggerTheme {
         Column(
@@ -139,9 +155,26 @@ private fun AddStepApp(
                     )
                 }
                 item {
+                    ToggleChip(
+                        checked = addBeforeIndex,
+                        onCheckedChange = { addBeforeIndex = !addBeforeIndex },
+                        label = {
+                            Text(stringResource(R.string.text_add_before_index, index + 1))
+                        },
+                        toggleControl = {
+                            Switch(
+                                checked = addBeforeIndex,
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                    )
+                }
+                item {
                     Row {
                         Button(
-                            onClick = { },
+                            onClick = { onCancel() },
                             colors = ButtonDefaults.secondaryButtonColors(),
                             modifier = Modifier.padding(6.dp),
                         ) {
@@ -151,7 +184,14 @@ private fun AddStepApp(
                             )
                         }
                         Button(
-                            onClick = { },
+                            onClick = {
+                                val idx = if (addBeforeIndex) {
+                                    index
+                                } else {
+                                    index + 1
+                                }
+                                onConfirm(idx, name, url)
+                            },
                             modifier = Modifier.padding(6.dp),
                         ) {
                             Icon(
@@ -169,5 +209,5 @@ private fun AddStepApp(
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
 fun PreviewAddStepApp() {
-    AddStepApp()
+    AddStepApp(index = 0)
 }

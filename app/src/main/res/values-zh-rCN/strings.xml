@@ -6,4 +6,6 @@
     <string name="label_url">链接</string>
 
     <string name="text_no_steps">无步骤</string>
+    <string name="text_add_after_index">在第 %d 步后添加</string>
+    <string name="text_add_before_index">在第 %d 步前添加</string>
 </resources>

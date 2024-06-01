@@ -12,4 +12,6 @@
     <string name="label_url">Url</string>
 
     <string name="text_no_steps">No steps</string>
+    <string name="text_add_after_index">Add after step %d</string>
+    <string name="text_add_before_index">Add before step %d</string>
 </resources>

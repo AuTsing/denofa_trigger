@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
@@ -37,9 +39,15 @@ import androidx.wear.compose.material.OutlinedButton
 import androidx.wear.compose.material.Text
 import com.autsing.denofatrigger.watch.R
 import com.autsing.denofatrigger.watch.presentation.theme.DenofaTriggerTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val stepRepo: StepRepository = StepRepository()
+    @Inject
+    lateinit var stepRepo: StepRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -48,10 +56,15 @@ class MainActivity : ComponentActivity() {
 
         setTheme(android.R.style.Theme_DeviceDefault)
 
+        val stepsState = stepRepo.observeSteps()
+            .stateIn(lifecycleScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
         setContent {
+            val steps by stepsState.collectAsState()
             WearApp(
-                steps = stepRepo.getSteps(),
-                onAddStep = { AddStepActivity.startActivity(this, 0) },
+                steps = steps,
+                onAddStep = { AddStepActivity.startActivity(this, it) },
+                onRemoveStep = { stepRepo.removeStep(it) },
             )
         }
     }
@@ -135,13 +148,21 @@ fun WearApp(
             Row {
                 if (steps.isNotEmpty()) {
                     Button(
-                        onClick = { onRemoveStep(index) },
+                        onClick = {
+                            onRemoveStep(index)
+                            if (index > steps.size - 2) {
+                                index = steps.size - 2
+                            }
+                            if (index < 0) {
+                                index = 0
+                            }
+                        },
                         colors = ButtonDefaults.secondaryButtonColors(),
                         modifier = Modifier.padding(6.dp),
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.round_clear_24),
-                            contentDescription = "clear button",
+                            painter = painterResource(R.drawable.round_delete_24),
+                            contentDescription = "delete button",
                         )
                     }
                 }
