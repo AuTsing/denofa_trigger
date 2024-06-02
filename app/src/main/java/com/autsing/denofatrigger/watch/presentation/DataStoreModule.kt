@@ -38,7 +38,7 @@ object DataStoreModule {
     @StepDataStore
     @Singleton
     @Provides
-    fun provideProfileDataStore(
+    fun provideStepDataStore(
         @ApplicationContext context: Context,
     ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
         corruptionHandler = ReplaceFileCorruptionHandler(

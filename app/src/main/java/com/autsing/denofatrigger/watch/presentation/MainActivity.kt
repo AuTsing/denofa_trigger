@@ -6,9 +6,11 @@
 
 package com.autsing.denofatrigger.watch.presentation
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -30,10 +33,6 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
@@ -43,23 +42,10 @@ import androidx.wear.compose.material.Text
 import com.autsing.denofatrigger.watch.R
 import com.autsing.denofatrigger.watch.presentation.theme.DenofaTriggerTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collectIndexed
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject
-    lateinit var stepRepo: StepRepository
-
-    @Inject
-    @StepDataStore
-    lateinit var dataStore: DataStore<Preferences>
+    private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -68,54 +54,28 @@ class MainActivity : ComponentActivity() {
 
         setTheme(android.R.style.Theme_DeviceDefault)
 
-        val stepsState = stepRepo.observeSteps()
-            .stateIn(lifecycleScope, SharingStarted.WhileSubscribed(5000), emptyList())
-        lifecycleScope.launch(Dispatchers.IO) {
-            val steps = runCatching {
-                val names = dataStore.data
-                    .map { it[DataStoreModule.PrefKeys.prefKeyStepNames] ?: "" }
-                    .first()
-                    .split(",")
-                val urls = dataStore.data
-                    .map { it[DataStoreModule.PrefKeys.prefKeyStepUrls] ?: "" }
-                    .first()
-                    .split(",")
-                names.mapIndexed { index, name -> Step(name, urls[index]) }
-            }.getOrDefault(emptyList())
-            stepRepo.setSteps(steps)
-        }
-        lifecycleScope.launch(Dispatchers.IO) {
-            stepsState.collectIndexed { index, steps ->
-                if (index == 0) {
-                    return@collectIndexed
-                }
-
-                val names = steps.joinToString(",") { it.name }
-                val urls = steps.joinToString(",") { it.url }
-                dataStore.edit {
-                    it[DataStoreModule.PrefKeys.prefKeyStepNames] = names
-                    it[DataStoreModule.PrefKeys.prefKeyStepUrls] = urls
-                }
-            }
-        }
-
-        setContent {
-            val steps by stepsState.collectAsState()
-            WearApp(
-                steps = steps,
-                onAddStep = { AddStepActivity.startActivity(this, it) },
-                onRemoveStep = { stepRepo.removeStep(it) },
-            )
-        }
+        setContent { WearApp(mainViewModel) }
     }
 }
 
 @Composable
-fun WearApp(
+private fun WearApp(mainViewModel: MainViewModel) {
+    val steps by mainViewModel.steps.collectAsState()
+
+    WearScreen(
+        steps = steps,
+        onAddStep = mainViewModel::handleAddStep,
+        onRemoveStep = mainViewModel::handleRemoveStep,
+    )
+}
+
+@Composable
+private fun WearScreen(
     steps: List<Step>,
-    onAddStep: (Int) -> Unit = {},
+    onAddStep: (Context, Int) -> Unit = { _, _ -> },
     onRemoveStep: (Int) -> Unit = {},
 ) {
+    val context = LocalContext.current
     var index by remember { mutableIntStateOf(0) }
 
     DenofaTriggerTheme {
@@ -207,7 +167,7 @@ fun WearApp(
                     }
                 }
                 Button(
-                    onClick = { onAddStep(index) },
+                    onClick = { onAddStep(context, index) },
                     modifier = Modifier.padding(6.dp),
                 ) {
                     Icon(
@@ -223,13 +183,13 @@ fun WearApp(
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    WearApp(emptyList())
+    WearScreen(emptyList())
 }
 
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreviewNotEmpty() {
-    WearApp(
+    WearScreen(
         listOf(
             Step("Step1", ""),
             Step("Step2", ""),

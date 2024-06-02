@@ -12,14 +12,7 @@ data class Step(
 
 @Singleton
 class StepRepository @Inject constructor() {
-    private val steps: MutableStateFlow<List<Step>> = MutableStateFlow(
-        listOf(
-            Step("Step1", ""),
-            Step("Step2", ""),
-            Step("Step3", ""),
-            Step("Step4", ""),
-        )
-    )
+    private val steps: MutableStateFlow<List<Step>> = MutableStateFlow(emptyList())
 
     fun getSteps(): List<Step> {
         return steps.value
