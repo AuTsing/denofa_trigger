@@ -2,6 +2,7 @@ package com.autsing.denofatrigger.watch.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -18,6 +19,10 @@ class StepUtil @Inject constructor(
 
     fun getSteps(): List<Step> {
         return stepRepo.getSteps()
+    }
+
+    fun observeSteps(): Flow<List<Step>> {
+        return stepRepo.observeSteps()
     }
 
     fun observeSteps(viewModel: ViewModel): StateFlow<List<Step>> {

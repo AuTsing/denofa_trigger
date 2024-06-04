@@ -1,77 +1,44 @@
 package com.autsing.denofatrigger.watch.tile
 
-import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.wear.protolayout.ColorBuilders
-import androidx.wear.protolayout.LayoutElementBuilders
-import androidx.wear.protolayout.ModifiersBuilders.Clickable
+import androidx.lifecycle.lifecycleScope
 import androidx.wear.protolayout.ResourceBuilders
-import androidx.wear.protolayout.TimelineBuilders
-import androidx.wear.protolayout.material.Button
-import androidx.wear.protolayout.material.Colors
-import androidx.wear.protolayout.material.Text
-import androidx.wear.protolayout.material.Typography
-import androidx.wear.protolayout.material.layouts.EdgeContentLayout
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
+import com.autsing.denofatrigger.watch.presentation.StepUtil
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
-import com.google.android.horologist.compose.tools.LayoutRootPreview
-import com.google.android.horologist.compose.tools.buildDeviceParameters
 import com.google.android.horologist.tiles.SuspendingTileService
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 private const val RESOURCES_VERSION = "0"
 
 @OptIn(ExperimentalHorologistApi::class)
 class MainTileService : SuspendingTileService() {
+    private lateinit var renderer: MainTileRenderer
+    private lateinit var state: StateFlow<MainTileState?>
+
+    override fun onCreate() {
+        super.onCreate()
+        renderer = MainTileRenderer(this)
+        state = StepUtil.instance.observeSteps()
+            .map { MainTileState(steps = it, index = 0) }
+            .stateIn(lifecycleScope, SharingStarted.WhileSubscribed(5000), null)
+    }
+
     override suspend fun resourcesRequest(
         requestParams: RequestBuilders.ResourcesRequest
     ): ResourceBuilders.Resources {
-        return ResourceBuilders.Resources.Builder().setVersion(RESOURCES_VERSION).build()
+        return renderer.produceRequestedResources(Unit, requestParams)
     }
 
     override suspend fun tileRequest(
         requestParams: RequestBuilders.TileRequest
     ): TileBuilders.Tile {
-        val singleTileTimeline = TimelineBuilders.Timeline.Builder().addTimelineEntry(
-            TimelineBuilders.TimelineEntry.Builder().setLayout(
-                LayoutElementBuilders.Layout.Builder().setRoot(tileLayout(this)).build()
-            ).build()
-        ).build()
-
-        return TileBuilders.Tile.Builder().setResourcesVersion(RESOURCES_VERSION)
-            .setTileTimeline(singleTileTimeline).build()
+        val latestState = state.filterNotNull().first()
+        return renderer.renderTimeline(latestState, requestParams)
     }
-}
-
-private fun tileLayout(context: Context): LayoutElementBuilders.LayoutElement {
-    return EdgeContentLayout.Builder(buildDeviceParameters(context.resources))
-        .setContent(
-            LayoutElementBuilders.Column.Builder()
-                .addContent(
-                    Text.Builder(context, "Hello World!")
-                        .setColor(ColorBuilders.argb(Colors.DEFAULT.onSurface))
-                        .setTypography(Typography.TYPOGRAPHY_CAPTION1)
-                        .build()
-                )
-                .addContent(
-                    Button.Builder(context, Clickable.Builder().build())
-                        .setTextContent("ic")
-                        .build()
-                )
-                .build()
-        ).build()
-}
-
-@Preview(
-    device = Devices.WEAR_OS_SMALL_ROUND,
-    showSystemUi = true,
-    backgroundColor = 0xff000000,
-    showBackground = true
-)
-@Composable
-fun TilePreview() {
-    LayoutRootPreview(root = tileLayout(LocalContext.current))
 }
