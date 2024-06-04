@@ -7,6 +7,7 @@ import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStoreFile
 import dagger.Module
@@ -30,9 +31,11 @@ object DataStoreModule {
     object PrefKeys {
         private const val PREF_KEY_STEP_NAMES = "pref_key_step_names"
         private const val PREF_KEY_STEP_URLS = "pref_key_step_urls"
+        private const val PREF_KEY_STEP_INDEX = "pref_key_step_index"
 
         val prefKeyStepNames: Preferences.Key<String> = stringPreferencesKey(PREF_KEY_STEP_NAMES)
         val prefKeyStepUrls: Preferences.Key<String> = stringPreferencesKey(PREF_KEY_STEP_URLS)
+        val prefKeyStepIndex: Preferences.Key<Int> = intPreferencesKey(PREF_KEY_STEP_INDEX)
     }
 
     @StepDataStore

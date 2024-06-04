@@ -20,9 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -61,22 +58,28 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun WearApp(mainViewModel: MainViewModel) {
     val steps by mainViewModel.steps.collectAsState()
+    val stepIndex by mainViewModel.stepIndex.collectAsState()
 
     WearScreen(
         steps = steps,
+        stepIndex = stepIndex,
         onAddStep = mainViewModel::handleAddStep,
         onRemoveStep = mainViewModel::handleRemoveStep,
+        onPrevStep = mainViewModel::handlePrevStep,
+        onNextStep = mainViewModel::handleNextStep,
     )
 }
 
 @Composable
 private fun WearScreen(
     steps: List<Step>,
-    onAddStep: (Context, Int) -> Unit = { _, _ -> },
-    onRemoveStep: (Int) -> Unit = {},
+    stepIndex: Int,
+    onAddStep: (Context) -> Unit = {},
+    onRemoveStep: () -> Unit = {},
+    onPrevStep: () -> Unit = {},
+    onNextStep: () -> Unit = {},
 ) {
     val context = LocalContext.current
-    var index by remember { mutableIntStateOf(0) }
 
     DenofaTriggerTheme {
         Column(
@@ -88,10 +91,11 @@ private fun WearScreen(
                 .padding(6.dp),
         ) {
             if (steps.isNotEmpty()) {
-                Text("${index + 1}/${steps.size}")
+                Text("${stepIndex + 1}/${steps.size}")
             } else {
                 Text(
                     text = stringResource(R.string.text_no_steps),
+                    style = MaterialTheme.typography.title2,
                     modifier = Modifier.padding(6.dp),
                 )
             }
@@ -101,10 +105,10 @@ private fun WearScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    if (index > 0) {
+                    if (stepIndex > 0) {
                         OutlinedButton(
                             border = ButtonDefaults.buttonBorder(),
-                            onClick = { index-- },
+                            onClick = onPrevStep,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.round_arrow_back_ios_24),
@@ -120,15 +124,16 @@ private fun WearScreen(
                     }
 
                     Text(
-                        text = steps[index].name,
+                        text = steps[stepIndex].name,
                         textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.title2,
                         modifier = Modifier.weight(1F),
                     )
 
-                    if (index < steps.size - 1) {
+                    if (stepIndex < steps.size - 1) {
                         OutlinedButton(
                             border = ButtonDefaults.buttonBorder(),
-                            onClick = { index++ },
+                            onClick = onNextStep,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.round_arrow_forward_ios_24),
@@ -148,15 +153,7 @@ private fun WearScreen(
             Row {
                 if (steps.isNotEmpty()) {
                     Button(
-                        onClick = {
-                            onRemoveStep(index)
-                            if (index > steps.size - 2) {
-                                index = steps.size - 2
-                            }
-                            if (index < 0) {
-                                index = 0
-                            }
-                        },
+                        onClick = onRemoveStep,
                         colors = ButtonDefaults.secondaryButtonColors(),
                         modifier = Modifier.padding(6.dp),
                     ) {
@@ -167,7 +164,7 @@ private fun WearScreen(
                     }
                 }
                 Button(
-                    onClick = { onAddStep(context, index) },
+                    onClick = { onAddStep(context) },
                     modifier = Modifier.padding(6.dp),
                 ) {
                     Icon(
@@ -183,17 +180,21 @@ private fun WearScreen(
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
-    WearScreen(emptyList())
+    WearScreen(
+        steps = emptyList(),
+        stepIndex = 0,
+    )
 }
 
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreviewNotEmpty() {
     WearScreen(
-        listOf(
+        steps = listOf(
             Step("Step1", ""),
             Step("Step2", ""),
             Step("Step3", ""),
-        )
+        ),
+        stepIndex = 0,
     )
 }

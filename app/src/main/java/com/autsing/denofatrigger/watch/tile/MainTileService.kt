@@ -4,7 +4,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.wear.protolayout.ResourceBuilders
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
-import com.autsing.denofatrigger.watch.presentation.StepUtil
+import com.autsing.denofatrigger.watch.presentation.StepRepository
 import com.google.android.horologist.annotations.ExperimentalHorologistApi
 import com.google.android.horologist.tiles.SuspendingTileService
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +24,7 @@ class MainTileService : SuspendingTileService() {
     override fun onCreate() {
         super.onCreate()
         renderer = MainTileRenderer(this)
-        state = StepUtil.instance.observeSteps()
+        state = StepRepository.instance.observeSteps()
             .map { MainTileState(steps = it, index = 0) }
             .stateIn(lifecycleScope, SharingStarted.WhileSubscribed(5000), null)
     }

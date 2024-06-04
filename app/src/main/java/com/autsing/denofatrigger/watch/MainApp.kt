@@ -1,18 +1,18 @@
 package com.autsing.denofatrigger.watch
 
 import android.app.Application
-import com.autsing.denofatrigger.watch.presentation.StepUtil
+import com.autsing.denofatrigger.watch.presentation.StepRepository
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
 class MainApp : Application() {
     @Inject
-    lateinit var stepUtil: StepUtil
+    lateinit var stepRepo: StepRepository
 
     override fun onCreate() {
         super.onCreate()
 
-        StepUtil.instance = stepUtil
+        StepRepository.instance = stepRepo
     }
 }
