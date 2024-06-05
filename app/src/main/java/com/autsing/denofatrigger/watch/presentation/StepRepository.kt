@@ -1,7 +1,6 @@
 package com.autsing.denofatrigger.watch.presentation
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -94,7 +93,6 @@ class StepRepository @Inject constructor(
                 it[DataStoreModule.PrefKeys.prefKeyStepIndex] = stepIndex
             }
 
-            Log.d("TAG", "listenStepIndex: $stepIndex")
             withContext(Dispatchers.Main) {
                 TileService.getUpdater(context).requestUpdate(MainTileService::class.java)
             }
