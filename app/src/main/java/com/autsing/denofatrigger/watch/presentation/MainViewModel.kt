@@ -9,11 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-data class MainViewModelState(
-    val steps: List<Step> = emptyList(),
-    val stepIndex: Int = 0,
-)
-
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val stepRepo: StepRepository,
