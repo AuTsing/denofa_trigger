@@ -1,9 +1,11 @@
 package com.autsing.denofatrigger.watch.tile
 
+import android.content.ComponentName
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.wear.compose.ui.tooling.preview.WearPreviewLargeRound
+import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.ColorBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders.DeviceParameters
 import androidx.wear.protolayout.DimensionBuilders
@@ -41,7 +43,6 @@ class MainTileRenderer(context: Context) : SingleTileLayoutRenderer<MainTileStat
             context = context,
             deviceParameters = deviceParameters,
             state = state,
-            runButtonClickable = ModifiersBuilders.Clickable.Builder().build(),
         )
     }
 
@@ -61,7 +62,6 @@ private fun tileLayout(
     context: Context,
     deviceParameters: DeviceParameters,
     state: MainTileState,
-    runButtonClickable: ModifiersBuilders.Clickable,
 ): LayoutElement {
     return EdgeContentLayout.Builder(deviceParameters)
         .apply {
@@ -71,7 +71,7 @@ private fun tileLayout(
                 setContent(
                     LayoutElementBuilders.Column.Builder()
                         .addContent(infoLayout(context, step.name))
-                        .addContent(runLayout(context, runButtonClickable))
+                        .addContent(runLayout(context))
                         .build()
                 )
             } else {
@@ -122,9 +122,20 @@ private fun infoLayout(
 
 private fun runLayout(
     context: Context,
-    clickable: ModifiersBuilders.Clickable,
 ): Button {
-    return Button.Builder(context, clickable)
+    return Button.Builder(
+        context,
+        ModifiersBuilders.Clickable.Builder()
+            .setOnClick(
+                ActionBuilders.launchAction(
+                    ComponentName(
+                        "com.autsing.denofatrigger.watch",
+                        "com.autsing.denofatrigger.watch.tile.RunActivity",
+                    )
+                )
+            )
+            .build(),
+    )
         .setIconContent(MainTileRenderer.RES_PLAY_ARROW)
         .build()
 }

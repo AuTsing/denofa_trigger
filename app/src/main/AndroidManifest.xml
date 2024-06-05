@@ -4,6 +4,7 @@
     <uses-feature android:name="android.hardware.type.watch" />
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".MainApp"
@@ -69,6 +70,13 @@
             android:exported="true"
             android:taskAffinity=""
             android:theme="@style/MainActivityTheme.Starting" />
+
+        <activity
+            android:name=".tile.RunActivity"
+            android:exported="true"
+            android:taskAffinity=""
+            android:theme="@style/MainActivityTheme.Starting" />
+
     </application>
 
 </manifest>

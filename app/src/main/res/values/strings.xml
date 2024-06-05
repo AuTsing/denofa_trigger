@@ -14,4 +14,8 @@
     <string name="text_no_steps">No steps</string>
     <string name="text_add_after_index">Add after step %d</string>
     <string name="text_add_before_index">Add before step %d</string>
+    <string name="text_sending_request">Sending request</string>
+    <string name="text_has_been_sent">Has been sent</string>
+    <string name="text_successful">Successful</string>
+    <string name="text_failed">Failed</string>
 </resources>

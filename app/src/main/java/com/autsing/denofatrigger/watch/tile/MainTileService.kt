@@ -17,13 +17,13 @@ class MainTileService : SuspendingTileService() {
     }
 
     override suspend fun resourcesRequest(
-        requestParams: RequestBuilders.ResourcesRequest
+        requestParams: RequestBuilders.ResourcesRequest,
     ): ResourceBuilders.Resources {
         return renderer.produceRequestedResources(Unit, requestParams)
     }
 
     override suspend fun tileRequest(
-        requestParams: RequestBuilders.TileRequest
+        requestParams: RequestBuilders.TileRequest,
     ): TileBuilders.Tile {
         val steps = StepRepository.instance.getSteps()
         val stepIndex = StepRepository.instance.getStepIndex()
