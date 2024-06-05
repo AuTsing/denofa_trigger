@@ -11,6 +11,9 @@ import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.LayoutElementBuilders.LayoutElement
 import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.ResourceBuilders.Resources
+import androidx.wear.protolayout.TypeBuilders
+import androidx.wear.protolayout.TypeBuilders.StringLayoutConstraint
+import androidx.wear.protolayout.expression.DynamicBuilders
 import androidx.wear.protolayout.material.Button
 import androidx.wear.protolayout.material.CircularProgressIndicator
 import androidx.wear.protolayout.material.Colors
@@ -45,7 +48,7 @@ class MainTileRenderer(context: Context) : SingleTileLayoutRenderer<MainTileStat
     override fun Resources.Builder.produceRequestedResources(
         resourceState: Unit,
         deviceParameters: DeviceParameters,
-        resourceIds: MutableList<String>,
+        resourceIds: List<String>,
     ) {
         addIdToImageMapping(
             RES_PLAY_ARROW,
@@ -62,12 +65,12 @@ private fun tileLayout(
 ): LayoutElement {
     return EdgeContentLayout.Builder(deviceParameters)
         .apply {
-            val text = runCatching { state.steps[state.index] }.getOrNull()
+            val step = runCatching { state.steps[state.stepIndex] }.getOrNull()
 
-            if (text != null) {
+            if (step != null) {
                 setContent(
                     LayoutElementBuilders.Column.Builder()
-                        .addContent(infoLayout(context, text.name))
+                        .addContent(infoLayout(context, step.name))
                         .addContent(runLayout(context, runButtonClickable))
                         .build()
                 )
@@ -80,7 +83,7 @@ private fun tileLayout(
             }
         }
         .apply {
-            val percentage = runCatching { state.index.toFloat() / state.steps.size }
+            val percentage = runCatching { state.stepIndex.toFloat() / state.steps.size }
                 .getOrNull()
 
             if (percentage != null) {
@@ -96,7 +99,13 @@ private fun infoLayout(
     context: Context,
     text: String,
 ): Text {
-    return Text.Builder(context, text)
+    return Text.Builder(
+        context,
+        TypeBuilders.StringProp.Builder("")
+            .setDynamicValue(DynamicBuilders.DynamicString.constant(text))
+            .build(),
+        StringLayoutConstraint.Builder("").build(),
+    )
         .setColor(ColorBuilders.argb(Colors.DEFAULT.onSurface))
         .setTypography(Typography.TYPOGRAPHY_TITLE1)
         .setModifiers(
@@ -141,7 +150,7 @@ fun TilePreview() {
                 Step("Step4", ""),
                 Step("Step5", ""),
             ),
-            index = 0,
+            stepIndex = 0,
         ),
         resourceState = Unit,
         renderer = MainTileRenderer(LocalContext.current),

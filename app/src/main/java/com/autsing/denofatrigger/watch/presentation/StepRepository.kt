@@ -1,8 +1,13 @@
 package com.autsing.denofatrigger.watch.presentation
 
+import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.wear.tiles.TileService
+import com.autsing.denofatrigger.watch.tile.MainTileService
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -12,6 +17,7 @@ import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,6 +28,7 @@ data class Step(
 
 @Singleton
 class StepRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     @StepDataStore private val stepDataStore: DataStore<Preferences>,
 ) {
     companion object {
@@ -72,6 +79,8 @@ class StepRepository @Inject constructor(
                 it[DataStoreModule.PrefKeys.prefKeyStepNames] = names
                 it[DataStoreModule.PrefKeys.prefKeyStepUrls] = urls
             }
+
+            TileService.getUpdater(context).requestUpdate(MainTileService::class.java)
         }
     }
 
@@ -83,6 +92,11 @@ class StepRepository @Inject constructor(
 
             stepDataStore.edit {
                 it[DataStoreModule.PrefKeys.prefKeyStepIndex] = stepIndex
+            }
+
+            Log.d("TAG", "listenStepIndex: $stepIndex")
+            withContext(Dispatchers.Main) {
+                TileService.getUpdater(context).requestUpdate(MainTileService::class.java)
             }
         }
     }
