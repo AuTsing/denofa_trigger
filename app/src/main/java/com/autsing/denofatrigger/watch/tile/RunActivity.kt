@@ -1,11 +1,11 @@
 package com.autsing.denofatrigger.watch.tile
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,10 +13,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.autsing.denofatrigger.watch.R
@@ -31,7 +36,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class RunActivity : ComponentActivity() {
@@ -71,8 +75,12 @@ class RunActivity : ComponentActivity() {
                 val client = OkHttpClient()
                 val request = Request.Builder().url(step.url).build()
                 val response = client.newCall(request).execute().also { maybeResponse = it }
+                if (!response.isSuccessful) {
+                    throw Exception(response.body?.string() ?: response.message)
+                }
 
                 textState.value = getString(R.string.text_has_been_sent)
+                stepRepo.setStepIndex(stepIndex + 1)
                 delay(1000)
                 finishAndRemoveTask()
             }.onFailure {
@@ -90,6 +98,8 @@ private fun RunActivityAppScreen(
     text: String,
     info: String? = null,
 ) {
+    val context = LocalContext.current
+
     DenofaTriggerTheme {
         Box(
             contentAlignment = Alignment.Center,
@@ -98,18 +108,36 @@ private fun RunActivityAppScreen(
                 .background(MaterialTheme.colors.background)
                 .padding(6.dp),
         ) {
-            Column {
+            if (info == null) {
                 Text(
                     text = text,
                     style = MaterialTheme.typography.title2,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
                 )
-                if (info != null) {
-                    Text(
-                        text = info,
-                        style = MaterialTheme.typography.body2,
-                    )
+            } else {
+                ScalingLazyColumn {
+                    item {
+                        Text(
+                            text = text,
+                            style = MaterialTheme.typography.title2,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    item {
+                        Text(
+                            text = info,
+                            style = MaterialTheme.typography.body2,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    item {
+                        Button(onClick = { (context as Activity).finishAndRemoveTask() }) {
+                            Icon(
+                                painter = painterResource(R.drawable.round_clear_24),
+                                contentDescription = "exit button",
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -39,13 +39,12 @@ class StepRepository @Inject constructor(
     private val stepIndex: MutableStateFlow<Int> = MutableStateFlow(0)
 
     init {
-        loadSteps()
-        loadStepIndex()
+        loadState()
         listenSteps()
         listenStepIndex()
     }
 
-    private fun loadSteps(): Job = coroutineScope.launch {
+    private fun loadState(): Job = coroutineScope.launch {
         steps.value = runCatching {
             val names = stepDataStore.data
                 .map { it[DataStoreModule.PrefKeys.prefKeyStepNames] ?: "" }
@@ -57,12 +56,10 @@ class StepRepository @Inject constructor(
                 .split(",")
             names.mapIndexed { index, name -> Step(name, urls[index]) }
         }.getOrDefault(emptyList())
-    }
-
-    private fun loadStepIndex(): Job = coroutineScope.launch {
         stepIndex.value = stepDataStore.data
             .map { it[DataStoreModule.PrefKeys.prefKeyStepIndex] ?: 0 }
             .first()
+            .let { if (it < 0 || it > steps.value.size - 1) 0 else it }
     }
 
     private fun listenSteps(): Job = coroutineScope.launch {
@@ -140,6 +137,10 @@ class StepRepository @Inject constructor(
     }
 
     fun setStepIndex(index: Int) {
+        if (index < 0 || index > steps.value.size - 1) {
+            stepIndex.value = 0
+            return
+        }
         stepIndex.value = index
     }
 }
