@@ -27,7 +27,6 @@ import androidx.wear.compose.material.Text
 import com.autsing.denofatrigger.watch.R
 import com.autsing.denofatrigger.watch.presentation.StepRepository
 import com.autsing.denofatrigger.watch.presentation.theme.DenofaTriggerTheme
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,13 +34,8 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class RunActivity : ComponentActivity() {
-    @Inject
-    lateinit var stepRepo: StepRepository
-
     private var textState: MutableStateFlow<String> = MutableStateFlow("")
     private var infoState: MutableStateFlow<String?> = MutableStateFlow(null)
 
@@ -67,8 +61,8 @@ class RunActivity : ComponentActivity() {
             runCatching {
                 textState.value = "${getString(R.string.text_sending_request)}..."
 
-                val steps = stepRepo.getSteps()
-                val stepIndex = stepRepo.getStepIndex()
+                val steps = StepRepository.instance.getSteps()
+                val stepIndex = StepRepository.instance.getStepIndex()
                 val step = runCatching { steps[stepIndex] }.getOrNull()
                     ?: throw Exception("Unreachable index")
 
@@ -80,7 +74,7 @@ class RunActivity : ComponentActivity() {
                 }
 
                 textState.value = getString(R.string.text_has_been_sent)
-                stepRepo.setStepIndex(stepIndex + 1)
+                StepRepository.instance.setStepIndex(stepIndex + 1)
                 delay(1000)
                 finishAndRemoveTask()
             }.onFailure {

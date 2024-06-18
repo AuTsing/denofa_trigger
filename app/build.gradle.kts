@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.googleDaggerHiltAndroid)
-    alias(libs.plugins.googleDevtoolsKsp)
     alias(libs.plugins.jetbrainsKotlinSerialization)
 }
 
@@ -67,12 +65,10 @@ dependencies {
     implementation(libs.horologist.tiles)
     implementation(libs.watchface.complications.data.source.ktx)
     implementation(libs.okhttp)
-    implementation(libs.google.dagger.hilt.android)
     implementation(libs.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
-    ksp(libs.google.dagger.hilt.android.compiler)
 }

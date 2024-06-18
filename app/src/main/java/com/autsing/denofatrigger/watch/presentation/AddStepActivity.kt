@@ -41,10 +41,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChip
 import com.autsing.denofatrigger.watch.R
 import com.autsing.denofatrigger.watch.presentation.theme.DenofaTriggerTheme
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class AddStepActivity : ComponentActivity() {
     companion object {
         const val EXTRA_KEY_INDEX = "EXTRA_KEY_INDEX"
@@ -55,9 +52,6 @@ class AddStepActivity : ComponentActivity() {
             context.startActivity(intent)
         }
     }
-
-    @Inject
-    lateinit var stepRepo: StepRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +64,7 @@ class AddStepActivity : ComponentActivity() {
             AddStepApp(
                 index = index,
                 onConfirm = { index, name, url ->
-                    stepRepo.addStep(index, Step(name, url))
+                    StepRepository.instance.addStep(index, Step(name, url))
                     finish()
                 },
                 onCancel = { finish() },

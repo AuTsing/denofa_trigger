@@ -1,12 +1,14 @@
 package com.autsing.denofatrigger.watch.presentation
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.wear.tiles.TileService
 import com.autsing.denofatrigger.watch.tile.MainTileService
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,8 +22,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Serializable
 data class Step(
@@ -29,13 +29,19 @@ data class Step(
     val url: String,
 )
 
-@Singleton
-class StepRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @StepDataStore private val stepDataStore: DataStore<Preferences>,
+class StepRepository(
+    private val context: Context,
+    private val stepDataStore: DataStore<Preferences>,
 ) {
     companion object {
+        @SuppressLint("StaticFieldLeak")
         lateinit var instance: StepRepository
+
+        private const val PREF_KEY_STEPS = "pref_key_steps"
+        private const val PREF_KEY_STEP_INDEX = "pref_key_step_index"
+
+        private val prefKeySteps = stringPreferencesKey(PREF_KEY_STEPS)
+        private val prefKeyStepIndex = intPreferencesKey(PREF_KEY_STEP_INDEX)
     }
 
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + Job())
@@ -51,12 +57,12 @@ class StepRepository @Inject constructor(
     private fun loadState(): Job = coroutineScope.launch {
         steps.value = runCatching {
             val stepsString = stepDataStore.data
-                .map { it[DataStoreModule.PrefKeys.prefKeySteps] ?: "" }
+                .map { it[prefKeySteps] ?: "" }
                 .first()
             Json.decodeFromString<List<Step>>(stepsString)
         }.getOrDefault(emptyList())
         stepIndex.value = stepDataStore.data
-            .map { it[DataStoreModule.PrefKeys.prefKeyStepIndex] ?: 0 }
+            .map { it[prefKeyStepIndex] ?: 0 }
             .first()
             .let { if (it < 0 || it > steps.value.size - 1) 0 else it }
     }
@@ -69,7 +75,7 @@ class StepRepository @Inject constructor(
 
             stepDataStore.edit {
                 val stepsString = Json.encodeToString(steps)
-                it[DataStoreModule.PrefKeys.prefKeySteps] = stepsString
+                it[prefKeySteps] = stepsString
             }
 
             TileService.getUpdater(context).requestUpdate(MainTileService::class.java)
@@ -83,7 +89,7 @@ class StepRepository @Inject constructor(
             }
 
             stepDataStore.edit {
-                it[DataStoreModule.PrefKeys.prefKeyStepIndex] = stepIndex
+                it[prefKeyStepIndex] = stepIndex
             }
 
             withContext(Dispatchers.Main) {
