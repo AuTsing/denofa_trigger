@@ -29,12 +29,10 @@ annotation class StepDataStore
 @Module
 object DataStoreModule {
     object PrefKeys {
-        private const val PREF_KEY_STEP_NAMES = "pref_key_step_names"
-        private const val PREF_KEY_STEP_URLS = "pref_key_step_urls"
+        private const val PREF_KEY_STEPS = "pref_key_steps"
         private const val PREF_KEY_STEP_INDEX = "pref_key_step_index"
 
-        val prefKeyStepNames: Preferences.Key<String> = stringPreferencesKey(PREF_KEY_STEP_NAMES)
-        val prefKeyStepUrls: Preferences.Key<String> = stringPreferencesKey(PREF_KEY_STEP_URLS)
+        val prefKeySteps: Preferences.Key<String> = stringPreferencesKey(PREF_KEY_STEPS)
         val prefKeyStepIndex: Preferences.Key<Int> = intPreferencesKey(PREF_KEY_STEP_INDEX)
     }
 

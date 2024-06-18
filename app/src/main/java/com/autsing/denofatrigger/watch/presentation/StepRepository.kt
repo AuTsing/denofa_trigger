@@ -17,9 +17,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Serializable
 data class Step(
     val name: String,
     val url: String,
@@ -46,15 +50,10 @@ class StepRepository @Inject constructor(
 
     private fun loadState(): Job = coroutineScope.launch {
         steps.value = runCatching {
-            val names = stepDataStore.data
-                .map { it[DataStoreModule.PrefKeys.prefKeyStepNames] ?: "" }
+            val stepsString = stepDataStore.data
+                .map { it[DataStoreModule.PrefKeys.prefKeySteps] ?: "" }
                 .first()
-                .split(",")
-            val urls = stepDataStore.data
-                .map { it[DataStoreModule.PrefKeys.prefKeyStepUrls] ?: "" }
-                .first()
-                .split(",")
-            names.mapIndexed { index, name -> Step(name, urls[index]) }
+            Json.decodeFromString<List<Step>>(stepsString)
         }.getOrDefault(emptyList())
         stepIndex.value = stepDataStore.data
             .map { it[DataStoreModule.PrefKeys.prefKeyStepIndex] ?: 0 }
@@ -68,12 +67,9 @@ class StepRepository @Inject constructor(
                 return@collectIndexed
             }
 
-            val names = steps.joinToString(",") { it.name }
-            val urls = steps.joinToString(",") { it.url }
-
             stepDataStore.edit {
-                it[DataStoreModule.PrefKeys.prefKeyStepNames] = names
-                it[DataStoreModule.PrefKeys.prefKeyStepUrls] = urls
+                val stepsString = Json.encodeToString(steps)
+                it[DataStoreModule.PrefKeys.prefKeySteps] = stepsString
             }
 
             TileService.getUpdater(context).requestUpdate(MainTileService::class.java)
@@ -124,7 +120,6 @@ class StepRepository @Inject constructor(
                     stepIndex.value = index
                 }
             }
-
     }
 
     fun removeStep(index: Int) {
