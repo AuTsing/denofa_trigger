@@ -120,21 +120,18 @@ class StepRepository(
             .apply {
                 if (steps.value.isEmpty()) {
                     add(step)
-                    stepIndex.value = 0
                 } else {
                     add(index, step)
-                    stepIndex.value = index
                 }
             }
+        setStepIndex(index)
     }
 
     fun removeStep(index: Int) {
         steps.value = steps.value
             .toMutableList()
             .apply { removeAt(index) }
-        if (steps.value.size - 1 > stepIndex.value) {
-            stepIndex.value--
-        }
+        setStepIndex(stepIndex.value - 1)
     }
 
     fun setStepIndex(index: Int) {
