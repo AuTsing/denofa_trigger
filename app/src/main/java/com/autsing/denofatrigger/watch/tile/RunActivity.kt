@@ -69,13 +69,15 @@ class RunActivity : ComponentActivity() {
                 val client = OkHttpClient()
                 val request = Request.Builder().url(step.url).build()
                 val response = client.newCall(request).execute().also { maybeResponse = it }
+                val content = response.body?.string() ?: response.message
                 if (!response.isSuccessful) {
-                    throw Exception(response.body?.string() ?: response.message)
+                    throw Exception(content)
                 }
 
                 textState.value = getString(R.string.text_has_been_sent)
+                infoState.value = content
                 StepRepository.instance.setStepIndex(stepIndex + 1)
-                delay(1000)
+                delay(3000)
                 finishAndRemoveTask()
             }.onFailure {
                 textState.value = getString(R.string.text_failed)
@@ -114,18 +116,25 @@ private fun RunActivityAppScreen(
                             text = text,
                             style = MaterialTheme.typography.title2,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(6.dp),
                         )
                     }
                     item {
                         Text(
                             text = info,
                             style = MaterialTheme.typography.body2,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(6.dp),
                         )
                     }
                     item {
-                        Button(onClick = { (context as Activity).finishAndRemoveTask() }) {
+                        Button(
+                            onClick = { (context as Activity).finishAndRemoveTask() },
+                            modifier = Modifier.padding(6.dp),
+                        ) {
                             Icon(
                                 painter = painterResource(R.drawable.round_clear_24),
                                 contentDescription = "exit button",
