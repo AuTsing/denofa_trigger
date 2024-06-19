@@ -81,7 +81,7 @@ private fun AddStepApp(
 ) {
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
     var name by remember { mutableStateOf("") }
-    var url by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf("https://") }
     var addBeforeIndex by remember { mutableStateOf(false) }
 
     DenofaTriggerTheme {
