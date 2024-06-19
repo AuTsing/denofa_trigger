@@ -63,8 +63,7 @@ class RunActivity : ComponentActivity() {
 
                 val steps = StepRepository.instance.getSteps()
                 val stepIndex = StepRepository.instance.getStepIndex()
-                val step = runCatching { steps[stepIndex] }.getOrNull()
-                    ?: throw Exception("Unreachable index")
+                val step = steps[stepIndex]
 
                 val client = OkHttpClient()
                 val request = Request.Builder().url(step.url).build()
