@@ -5,7 +5,7 @@
     values-round/strings.xml for round devices.
     -->
     <string name="hello_world" translatable="false">From the Square world,\nHello, %1$s!</string>
-    <string name="tile_label" translatable="false">Example tile</string>
+    <string name="tile_label" translatable="false">Denofa trigger card</string>
     <string name="complication_label" translatable="false">Example complication</string>
 
     <string name="label_name">Name</string>

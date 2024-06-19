@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material.Button
@@ -40,8 +39,6 @@ class RunActivity : ComponentActivity() {
     private var infoState: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-
         super.onCreate(savedInstanceState)
 
         setTheme(android.R.style.Theme_DeviceDefault)
