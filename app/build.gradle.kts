@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
@@ -64,6 +65,13 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+
+    applicationVariants.all {
+        outputs.map { it as BaseVariantOutputImpl }
+            .forEach {
+                it.outputFileName = "${rootProject.name}_v${versionName}_${buildType.name}.apk"
+            }
     }
 }
 
